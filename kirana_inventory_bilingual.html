@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kirana Inventory Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(to right, #e0f7fa, #e1bee7);
+    }
+    h1 {
+      text-align: center;
+      color: #2d3436;
+      background: linear-gradient(to right, #00b894, #6c5ce7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 2em;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    }
+    input, select, button {
+      padding: 12px;
+      margin: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+    }
+    button {
+      background: linear-gradient(to right, #00cec9, #6c5ce7);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: linear-gradient(to right, #6c5ce7, #00cec9);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+    th, td {
+      padding: 14px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background: #ffeaa7;
+    }
+    td {
+      background: #fefefe;
+    }
+    .low-stock {
+      color: #d63031;
+      font-weight: bold;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: #fab1a0;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+    #totalValue {
+      font-weight: bold;
+      font-size: 17px;
+      color: #2d3436;
+    }
+    @media screen and (max-width: 600px) {
+      input, select, button {
+        width: 100%;
+        margin: 10px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🛒 Kirana Store Inventory | किराना स्टोर सूची</h1>
+
+    <input type="text" id="itemName" placeholder="Item Name / वस्तु का नाम" />
+    <input type="number" id="itemQty" placeholder="Quantity / मात्रा" />
+    <input type="number" id="itemPrice" placeholder="Price per Unit / प्रति इकाई मूल्य" />
+    <select id="itemCategory">
+      <option value="General">General / सामान्य</option>
+      <option value="Grocery">Grocery / किराना</option>
+      <option value="Snacks">Snacks / नाश्ता</option>
+      <option value="Beverages">Beverages / पेय पदार्थ</option>
+      <option value="Household">Household / घरेलू</option>
+    </select>
+    <button onclick="addItem()">Add Item</button>
+
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th>Item / वस्तु</th>
+          <th>Qty / मात्रा</th>
+          <th>Price / मूल्य</th>
+          <th>Category / श्रेणी</th>
+          <th>Total / कुल</th>
+          <th>Status / स्थिति</th>
+          <th>Delete / हटाएं</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4"><strong>Total Inventory Value / कुल सूची मूल्य</strong></td>
+          <td colspan="3" id="totalValue">₹0</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <script>
+    function addItem() {
+      const name = document.getElementById("itemName").value.trim();
+      const qty = parseInt(document.getElementById("itemQty").value);
+      const price = parseFloat(document.getElementById("itemPrice").value);
+      const category = document.getElementById("itemCategory").value;
+
+      if (!name || isNaN(qty) || isNaN(price)) {
+        alert("Please fill all fields correctly.");
+        return;
+      }
+
+      if (qty < 5) {
+        alert(`⚠️ Low stock alert for "${name}"! Only ${qty} in stock.`);
+      }
+
+      const tbody = document.querySelector("#inventoryTable tbody");
+      const row = tbody.insertRow();
+
+      row.insertCell(0).textContent = name;
+      row.insertCell(1).textContent = qty;
+      row.insertCell(2).textContent = `₹${price.toFixed(2)}`;
+      row.insertCell(3).textContent = category;
+      row.insertCell(4).textContent = `₹${(qty * price).toFixed(2)}`;
+
+      const statusCell = row.insertCell(5);
+      if (qty < 5) {
+        statusCell.innerHTML = '<span class="badge low-stock">Low Stock</span>';
+      } else {
+        statusCell.innerHTML = '<span class="badge">In Stock</span>';
+      }
+
+      const deleteCell = row.insertCell(6);
+      deleteCell.innerHTML = '<button onclick="deleteRow(this)" style="background:#d63031;color:white;border:none;padding:6px 12px;border-radius:6px;">Delete</button>';
+
+      updateTotalValue();
+      clearInputs();
+    }
+
+    function deleteRow(btn) {
+      const row = btn.parentNode.parentNode;
+      row.parentNode.removeChild(row);
+      updateTotalValue();
+    }
+
+    function updateTotalValue() {
+      let total = 0;
+      const tbody = document.querySelector("#inventoryTable tbody");
+      for (let i = 0; i < tbody.rows.length; i++) {
+        const priceText = tbody.rows[i].cells[4].textContent.replace("₹", "");
+        total += parseFloat(priceText);
+      }
+      document.getElementById("totalValue").textContent = `₹${total.toFixed(2)}`;
+    }
+
+    function clearInputs() {
+      document.getElementById("itemName").value = "";
+      document.getElementById("itemQty").value = "";
+      document.getElementById("itemPrice").value = "";
+      document.getElementById("itemCategory").value = "General";
+    }
+  </script>
+
+</body>
+</html>
